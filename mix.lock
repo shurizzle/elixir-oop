@@ -1,0 +1,3 @@
+[ "finalizer": {:git,"https://github.com/meh/elixir-finalizer.git","9734c00cec874c22349a00f97e71b2efb26b3713",[]},
+  "managed_process": {:git,"https://github.com/meh/elixir-managed_process.git","f8159b86833fc285acd8ca678c2fdf03d67f8f9a",[]},
+  "resource": {:git,"https://github.com/tonyrog/resource.git","37264ec960263cec0df8d6db0da818297b8d5771",[]} ]
