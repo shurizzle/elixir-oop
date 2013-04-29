@@ -29,7 +29,7 @@ defmodule OOP do
       name when is_atom(name) -> defreader!(name)
     end
 
-    { :__block__, [], readers }
+    quote do: unquote readers
   end
 
   defmacro attr_writer({name,_,_}) do
@@ -46,7 +46,7 @@ defmodule OOP do
       name when is_atom(name) -> defwriter!(name)
     end
 
-    { :__block__, [], writers }
+    quote do: unquote writers
   end
 
   defmacro attr_accessor({name,_,_}) do
@@ -65,7 +65,7 @@ defmodule OOP do
         [defwriter!(name), defreader!(name)|a]
     end
 
-    { :__block__, [], accessors }
+    quote do: unquote accessors
   end
 
   defmacro attr({name,_,_}) do
@@ -84,7 +84,7 @@ defmodule OOP do
         [defwriter!(name), defreader!(name)|a]
     end
 
-    { :__block__, [], accessors }
+    quote do: unquote accessors
   end
 
   defmacro def({:when, _, [{name,_,params}|guards]}, do: block) do
