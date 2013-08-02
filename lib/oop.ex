@@ -1,12 +1,15 @@
 defmodule OOP do
+  import Kernel, except: [def: 2, def: 4, defp: 2, defp: 4]
+
   defmacro __using__(_) do
-    quote do: import OOP, only: [class: 2]
+    quote do
+      import OOP, only: [class: 2]
+    end
   end
 
   defmacro class(name, do: block) do
     quote do
       defmodule unquote(name) do
-        require Kernel
         import Kernel, except: [def: 2, def: 4, defp: 2, defp: 4]
         import OOP, only: [def: 2, defp: 2, attr_reader: 1, attr_writer: 1, attr_accessor: 1, attr: 1]
 
@@ -139,7 +142,7 @@ defmodule OOP do
     end
   end
 
-  defp defmethod!(:initialize, params, guards, block) do
+  Kernel.defp defmethod!(:initialize, params, guards, block) do
     quote do
       Kernel.def new(unquote_splicing(params))
         when unquote_splicing(guards) do
@@ -147,122 +150,122 @@ defmodule OOP do
           import Process.Managed, only: [<-: 2]
           import OOP, only: [@: 1]
           self = { __MODULE__, OOP.new_server }
-          unquote block
+          unquote transform block
           self
       end
     end
   end
 
-  defp defmethod!(name, params, guards, block) do
+  Kernel.defp defmethod!(name, params, guards, block) do
     quote do
       Kernel.def unquote(name)(unquote_splicing(params), { __MODULE__, { Process.Managed, _, _ } } = self)
         when unquote_splicing(guards) do
           import Kernel, except: [@: 1, <-: 2]
           import Process.Managed, only: [<-: 2]
           import OOP, only: [@: 1]
-          unquote block
+          unquote transform block
       end
     end
   end
 
-  defp defmethod!(:initialize, params, block) do
+  Kernel.defp defmethod!(:initialize, params, block) do
     quote do
       Kernel.def new(unquote_splicing(params)) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
         self = { __MODULE__, OOP.new_server }
-        unquote block
+        unquote transform block
         self
       end
     end
   end
 
-  defp defmethod!(name, params, block) do
+  Kernel.defp defmethod!(name, params, block) do
     quote do
       Kernel.def unquote(name)(unquote_splicing(params), { __MODULE__, { Process.Managed, _, _ } } = self) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
-        unquote block
+        unquote transform block
       end
     end
   end
 
-  defp defmethod!(:initialize, block) do
+  Kernel.defp defmethod!(:initialize, block) do
     quote do
       Kernel.def new() do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
         self = { __MODULE__, OOP.new_server }
-        unquote block
+        unquote transform block
         self
       end
     end
   end
 
-  defp defmethod!(name, block) do
+  Kernel.defp defmethod!(name, block) do
     quote do
       Kernel.def unquote(name)({ __MODULE__, { Process.Managed, _, _ } } = self) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
-        unquote block
+        unquote transform block
       end
     end
   end
 
-  defp defmethodp!(name, params, guards, block) do
+  Kernel.defp defmethodp!(name, params, guards, block) do
     quote do
       Kernel.defp unquote(name)(unquote_splicing(params), { __MODULE__, { Process.Managed, _, _ } } = self)
         when (unquote_splicing(guards)) do
           import Kernel, except: [@: 1, <-: 2]
           import Process.Managed, only: [<-: 2]
           import OOP, only: [@: 1]
-          unquote block
+          unquote transform block
       end
     end
   end
 
-  defp defmethodp!(name, params, block) do
+  Kernel.defp defmethodp!(name, params, block) do
     quote do
       Kernel.defp unquote(name)(unquote_splicing(params), { __MODULE__, { Process.Managed, _, _ } } = self) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
-        unquote block
+        unquote transform block
       end
     end
   end
 
-  defp defmethodp!(name, block) do
+  Kernel.defp defmethodp!(name, block) do
     quote do
       Kernel.defp unquote(name)({ __MODULE__, { Process.Managed, _, _ } } = self) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
         import OOP, only: [@: 1]
-        unquote block
+        unquote transform block
       end
     end
   end
 
-  defp defreader!(name) do
-    defmethod!(name, Code.string_to_ast!("@" <> atom_to_binary(name)))
+  Kernel.defp defreader!(name) do
+    defmethod!(name, Code.string_to_quoted!("@" <> atom_to_binary(name)))
   end
 
-  def defwriter!(name) do
-    defmethod!(name, [{:value,[],nil}], Code.string_to_ast!("@" <> atom_to_binary(name) <> "(value)"))
+  Kernel.def defwriter!(name) do
+    defmethod!(name, [{:value,[],nil}], Code.string_to_quoted!("@" <> atom_to_binary(name) <> "(value)"))
   end
 
-  def defaccessor!(name) do
+  Kernel.def defaccessor!(name) do
     quote do
       unquote defreader!(name)
       unquote defwriter!(name)
     end
   end
 
-  def new_server(dict) do
+  Kernel.def new_server(dict) do
     receive do
       { pid, { attr, val } } ->
         pid <- { Kernel.self, val }
@@ -273,7 +276,17 @@ defmodule OOP do
     end
   end
 
-  def new_server do
+  Kernel.def new_server do
     Process.Managed.spawn(OOP, :new_server, [HashDict.new])
   end
+
+  Kernel.defp transform({:=, _, [{:@, line1, [{var, line2, _}]}, val]}) do
+    {:@, line1, [{var, line2, [transform(val)]}]}
+  end
+
+  Kernel.defp transform({sym, line, r = [_|_]}) do
+    {sym, line, Enum.map(r, transform(&1))}
+  end
+
+  Kernel.defp transform(x), do: x
 end

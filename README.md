@@ -11,10 +11,10 @@ class LULZ do
   attr_reader [lol2, :lol3]
 
   def initialize do
-    @lulz("STUFF")
-    @lol1(1)
-    @lol2(2)
-    @lol3(3)
+    @lulz = "STUFF"
+    @lol1 = 1
+    @lol2 = 2
+    @lol3 = 3
   end
 end
 
