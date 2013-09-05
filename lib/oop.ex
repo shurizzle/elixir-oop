@@ -18,7 +18,7 @@ defmodule OOP do
     end
   end
 
-  defmacro attr_reader({name,_,_}) do
+  defmacro attr_reader({ name, _, _ }) do
     defreader!(name)
   end
 
@@ -28,14 +28,14 @@ defmodule OOP do
 
   defmacro attr_reader(names) when is_list(names) do
     readers = Enum.map names, fn
-      {name,_,_} -> defreader!(name)
+      { name, _, _ } -> defreader!(name)
       name when is_atom(name) -> defreader!(name)
     end
 
     quote do: unquote readers
   end
 
-  defmacro attr_writer({name,_,_}) do
+  defmacro attr_writer({ name, _, _ }) do
     defwriter!(name)
   end
 
@@ -45,14 +45,14 @@ defmodule OOP do
 
   defmacro attr_writer(names) when is_list(names) do
     writers = Enum.map names, fn
-      {name,_,_} -> defwriter!(name)
+      { name, _, _ } -> defwriter!(name)
       name when is_atom(name) -> defwriter!(name)
     end
 
     quote do: unquote writers
   end
 
-  defmacro attr_accessor({name,_,_}) do
+  defmacro attr_accessor({ name, _, _ }) do
     defaccessor!(name)
   end
 
@@ -62,7 +62,7 @@ defmodule OOP do
 
   defmacro attr_accessor(names) when is_list(names) do
     accessors = Enum.reverse Enum.reduce names, [], fn
-      {name,_,_}, a ->
+      { name, _, _ }, a ->
         [defwriter!(name), defreader!(name)|a]
       name, a when is_atom(name) ->
         [defwriter!(name), defreader!(name)|a]
@@ -71,7 +71,7 @@ defmodule OOP do
     quote do: unquote accessors
   end
 
-  defmacro attr({name,_,_}) do
+  defmacro attr({ name, _, _ }) do
     defaccessor!(name)
   end
 
@@ -81,7 +81,7 @@ defmodule OOP do
 
   defmacro attr(names) when is_list(names) do
     accessors = Enum.reverse Enum.reduce names, [], fn
-      {name,_,_}, a ->
+      { name, _, _ }, a ->
         [defwriter!(name), defreader!(name)|a]
       name, a when is_atom(name) ->
         [defwriter!(name), defreader!(name)|a]
@@ -90,31 +90,31 @@ defmodule OOP do
     quote do: unquote accessors
   end
 
-  defmacro def({:when, _, [{name,_,params}|guards]}, do: block) do
+  defmacro def({ :when, _, [{ name, _, params }|guards] }, do: block) do
     defmethod!(name, params, guards, block)
   end
 
-  defmacro def({name,_,nil}, do: block) do
+  defmacro def({ name, _, nil }, do: block) do
     defmethod!(name, block)
   end
 
-  defmacro def({name, _, params}, do: block) do
+  defmacro def({ name, _, params }, do: block) do
     defmethod!(name, params, block)
   end
 
-  defmacro defp({:when, _, [{name,_,params}|guards]}, do: block) do
+  defmacro defp({ :when, _, [{ name, _, params }|guards] }, do: block) do
     defmethodp!(name, params, guards, block)
   end
 
-  defmacro defp({name,_,nil}, do: block) do
+  defmacro defp({ name, _, nil }, do: block) do
     defmethodp!(name, block)
   end
 
-  defmacro defp({name, _, params}, do: block) do
+  defmacro defp({ name, _, params }, do: block) do
     defmethodp!(name, params, block)
   end
 
-  defmacro @({attr,_,nil}) do
+  defmacro @({ attr, _, nil }) do
     quote do
       import Kernel, except: [@: 1, <-: 2]
       import Process.Managed, only: [<-: 2]
@@ -123,12 +123,12 @@ defmodule OOP do
       pid <- { Kernel.self, unquote(attr) }
       rpid = pid.to_pid
       receive do
-        { ^rpid, value} -> value
+        { ^rpid, value } -> value
       end
     end
   end
 
-  defmacro @({attr,_,[code]}) do
+  defmacro @({ attr, _, [code] }) do
     quote do
       import Kernel, except: [@: 1, <-: 2]
       import Process.Managed, only: [<-: 2]
@@ -137,7 +137,7 @@ defmodule OOP do
       pid <- { Kernel.self, { unquote(attr), unquote(code) } }
       rpid = pid.to_pid
       receive do
-        { ^rpid, val} -> val
+        { ^rpid, val } -> val
       end
     end
   end
@@ -254,11 +254,11 @@ defmodule OOP do
     defmethod!(name, Code.string_to_quoted!("@" <> atom_to_binary(name)))
   end
 
-  Kernel.def defwriter!(name) do
+  Kernel.defp defwriter!(name) do
     defmethod!(name, [{:value,[],nil}], Code.string_to_quoted!("@" <> atom_to_binary(name) <> "(value)"))
   end
 
-  Kernel.def defaccessor!(name) do
+  Kernel.defp defaccessor!(name) do
     quote do
       unquote defreader!(name)
       unquote defwriter!(name)
@@ -280,12 +280,12 @@ defmodule OOP do
     Process.Managed.spawn(OOP, :new_server, [HashDict.new])
   end
 
-  Kernel.defp transform({:=, _, [{:@, line1, [{var, line2, _}]}, val]}) do
-    {:@, line1, [{var, line2, [transform(val)]}]}
+  Kernel.defp transform({:=, _, [{ :@, line1, [{ var, line2, _ }]}, val] }) do
+    { :@, line1, [{ var, line2, [transform(val)] }] }
   end
 
-  Kernel.defp transform({sym, line, r = [_|_]}) do
-    {sym, line, Enum.map(r, transform(&1))}
+  Kernel.defp transform({ sym, line, r = [_|_] }) do
+    { sym, line, Enum.map(r, transform(&1)) }
   end
 
   Kernel.defp transform(x), do: x
