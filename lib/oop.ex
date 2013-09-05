@@ -10,10 +10,37 @@ defmodule OOP do
   defmacro class(name, do: block) do
     quote do
       defmodule unquote(name) do
+        @make_init true
+
         import Kernel, except: [def: 2, def: 4, defp: 2, defp: 4]
         import OOP, only: [def: 2, defp: 2, attr_reader: 1, attr_writer: 1, attr_accessor: 1, attr: 1]
 
         unquote block
+
+        if @make_init do
+          def initialize, do: nil
+        end
+
+        Kernel.def inspect({ name, pid }) do
+          pid = pid_to_list(pid.to_pid)
+          "#<#{String.replace(to_string(name), %r/^Elixir\./, "")}:#{Enum.slice(pid, 1, Enum.count(pid) - 2)}>"
+        end
+
+        Kernel.def inspect(_, obj), do: obj.inspect
+
+        Kernel.def to_s(obj), do: obj.inspect
+
+        defoverridable [inspect: 2, inspect: 1, to_s: 1]
+      end
+
+      defimpl Inspect, for: unquote(name) do
+        def inspect(obj, opts) do
+          obj.inspect(opts)
+        end
+      end
+
+      defimpl String.Chars, for: unquote(name) do
+        def to_string(obj), do: obj.to_s
       end
     end
   end
@@ -144,6 +171,8 @@ defmodule OOP do
 
   Kernel.defp defmethod!(:initialize, params, guards, block) do
     quote do
+      @make_init false
+
       Kernel.def new(unquote_splicing(params))
         when unquote_splicing(guards) do
           import Kernel, except: [@: 1, <-: 2]
@@ -170,6 +199,8 @@ defmodule OOP do
 
   Kernel.defp defmethod!(:initialize, params, block) do
     quote do
+      @make_init false
+
       Kernel.def new(unquote_splicing(params)) do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
@@ -194,6 +225,8 @@ defmodule OOP do
 
   Kernel.defp defmethod!(:initialize, block) do
     quote do
+      @make_init false
+
       Kernel.def new() do
         import Kernel, except: [@: 1, <-: 2]
         import Process.Managed, only: [<-: 2]
