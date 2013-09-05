@@ -4,6 +4,7 @@ defmodule OOP.Mixfile do
   def project do
     [ app: :oop,
       version: "0.0.1",
+      elixir: ">= 0.10.2",
       deps: deps ]
   end
 
